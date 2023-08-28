@@ -54,6 +54,23 @@ pipeline {
                 }
             }
         }
+stage ('Push to repo') {
+            steps {
+                dir('ArgoCD') {
+                    withCredentials([gitUsernamePassword(credentialsId: 'git', gitToolName: 'Default')]) {
+                        git branch: 'main', url: 'https://github.com/DawidWojda/ArgoCD'
+                        sh """ cd backend
+                        git config --global user.email "dawidwojdalf@gmail.com"
+                        git config --global user.name "dawid"
+                        sed -i "s#$imageName.*#$imageName:$dockerTag#g" deployment.yaml
+                        git commit -am "Set new $dockerTag tag."
+                        git diff
+                        git push origin main
+                        """
+                    }                  
+                } 
+            }
+        }
     }
     post {
         always {
